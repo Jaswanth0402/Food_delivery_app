@@ -115,7 +115,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/ws/**",
+                                "/api/v1/deliveries/tracking/**",
+                                "/api/v1/payments/webhook"
                         ).permitAll()
 
                         // 3. Actuator probes

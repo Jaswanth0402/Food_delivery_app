@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +40,7 @@ public class PaymentController {
     public ResponseEntity<PaymentResponse> getPaymentByOrderId(
             @PathVariable Long orderId,
             Authentication authentication) {
-        Long customerId = Long.valueOf(authentication.getName());
+        Long customerId = getAuthenticatedCustomerId(authentication);
         return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId, customerId));
     }
 
@@ -50,5 +51,16 @@ public class PaymentController {
             @Valid @RequestBody GatewayWebhookPayload payload) {
         paymentService.handleWebhook(payload, signature);
         return ResponseEntity.ok().build();
+    }
+
+    private Long getAuthenticatedCustomerId(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new AccessDeniedException("User not authenticated.");
+        }
+        try {
+            return Long.valueOf(authentication.getName());
+        } catch (NumberFormatException ex) {
+            throw new AccessDeniedException("Invalid authenticated user ID format.");
+        }
     }
 }
